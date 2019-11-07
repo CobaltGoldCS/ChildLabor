@@ -3,9 +3,9 @@ import requests
 from bs4 import BeautifulSoup
 import urllib.request
 import time
-apiKey = "9dee867e-35fc-41f3-ac05-f4b15c5aa310"
-url = "https://data.dol.gov/get/childlabor_sta/?KEY="
-fullUrl = url+apiKey
-header = {"Accept": "application/json"}
+#Needs authentication header with api- not in URL
+apiKey = "8914d5ba-b5be-485d-90bc-7b0ec8ac2709"
+url = "https://data.dol.gov/get/childlabor_sta/"
+header = {"Accept": "application/json", "X-API-KEY": apiKey}
 status = requests.get(url, headers=header)
-print(status.json())
+print(status)
