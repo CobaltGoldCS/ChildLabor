@@ -19,7 +19,6 @@ percentage=[]
 for data in numData:
     percentage.append(data.attrs['data-raw'])
 dataTuple = merge(countryName, percentage)
-print(dataTuple)
 
 window = Tk()
 window.title("Percentage of children in Child Labor")
