@@ -1,9 +1,6 @@
 from tkinter import Tk, ttk, mainloop,Frame
 import requests
 from bs4 import BeautifulSoup
-import urllib.request
-import time
-import json
 def merge(list1, list2): 
       
     merged_list = [(list1[i], list2[i]) for i in range(0, len(list1))] 
