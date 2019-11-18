@@ -1,6 +1,7 @@
-from tkinter import Tk, ttk, mainloop,Frame
+from tkinter import Tk, ttk, mainloop,Frame, Wm, PhotoImage
 import requests
 from bs4 import BeautifulSoup
+from platform import system
 def merge(list1, list2): 
       
     merged_list = [(list1[i], list2[i]) for i in range(0, len(list1))] 
@@ -22,6 +23,9 @@ dataTuple = merge(countryName, percentage)
 
 window = Tk()
 window.title("Percentage of children in Child Labor")
+window.tk.call('wm','iconphot', window._w, PhotoImage(file='cl.gif'))
+if system() == 'darwin':
+    window.iconphoto(True, "cl.gif")
 treeFrame = Frame(window)
 treeview=ttk.Treeview(treeFrame, columns="percentageChildren")
 treeview.heading("percentageChildren", text="Percent(%)")
