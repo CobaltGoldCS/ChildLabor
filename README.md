@@ -1,6 +1,6 @@
 # ChildLabor
 
- ####To install 
+ #### To install 
  - Run _Install.sh_
  - Then run _main.py_
 
