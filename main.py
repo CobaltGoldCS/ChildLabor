@@ -1,62 +1,33 @@
-from tkinter import Tk, ttk, mainloop,Frame, Wm, PhotoImage, Button, Label, messagebox
+from tkinter import Tk, ttk, mainloop,Frame, Wm, PhotoImage, Button, StringVar, Label, messagebox, Canvas,OptionMenu
 import requests
 from bs4 import BeautifulSoup
 from platform import system
-from pathlib import Path
+
 def merge(list1, list2, list3): 
-      
+        """Merges 3 lists (used for the datatuple)"""
     merged_list = [(list1[i], list2[i], list3[i]) for i in range(0, len(list1))] 
-    return merged_list 
-url = "https://www.nationmaster.com/country-info/stats/People/Child-labor/Children-ages-5--14/Percentage"
-
-status = requests.get(url)
-content = status.content
-soup = BeautifulSoup(content, 'html.parser')
-numData= soup.find_all('td', {"class":"amount"})
-nameData = soup.find_all('span', {"class":"full"})
-flagData = soup.find_all('i', {"class": "flag"})
-countryName = []
-for country in nameData:
-    countryName.append(country.text)
-percentage=[]
-severity=[]
-for data in numData:
-    percentage.append(data.attrs['data-raw'])
-    if float(data.attrs['data-raw']) >= 50.0:
-        severityValue = 1
-    elif float(data.attrs['data-raw']) >= 40.0:
-        severityValue = 2
-    elif float(data.attrs['data-raw']) >= 25.0:
-        severityValue = 3
-    elif float(data.attrs['data-raw']) >= 10.0:
-        severityValue =4
-    else:
-        severityValue =5
-    severity.append(severityValue)
-dataTuple = merge(countryName, percentage, severity)
-
-
+    return merged_list
 
 class app:
     def __init__(self):
+        # Gets the web content
         url = "https://www.nationmaster.com/country-info/stats/People/Child-labor/Children-ages-5--14/Percentage"
-
         status = requests.get(url)
         content = status.content
         soup = BeautifulSoup(content, 'html.parser')
         numData= soup.find_all('td', {"class":"amount"})
         nameData = soup.find_all('span', {"class":"full"})
-        flagData = soup.find_all('i', {"class": "flag"})
-        countryName = []
+        self.countryName = []
         for country in nameData:
-            countryName.append(country.text)
+            self.countryName.append(country.text)
         percentage=[]
-        severity=[]
+        self.severity=[]
+        # Sets severity level by using the percentage
         for data in numData:
             percentage.append(data.attrs['data-raw'])
-            if float(data.attrs['data-raw']) >= 50.0:
+            if float(data.attrs['data-raw']) >= 47.0:
                 severityValue = 1
-            elif float(data.attrs['data-raw']) >= 40.0:
+            elif float(data.attrs['data-raw']) >= 35.0:
                 severityValue = 2
             elif float(data.attrs['data-raw']) >= 25.0:
                 severityValue = 3
@@ -64,15 +35,37 @@ class app:
                 severityValue =4
             else:
                 severityValue =5
-            severity.append(severityValue)
-        self.dataTuple = merge(countryName, percentage, severity)
+            self.severity.append(severityValue)
+        # Creates tuple that contains the treeview data
+        self.dataTuple = merge(self.countryName, percentage, self.severity)
+        # List for all of the severity levels used in the dropdown menu
+        self.allsev = [1,2,3,4,5]
+
+                
     def onClick(self, event):
+        # When an item in the treeview is clicked
         item = self.treeview.selection()
         for i in item:
             self.title = self.treeview.item(i, "values")[0]
             self.percent = self.treeview.item(i, "values")[1]
-            messagebox.showinfo("Data", self.percent+"% of children in "+self.title+"\n are workers in child labor.")
-            
+            messagebox.showinfo("Data", self.percent+"% of children in "+self.title+" "+"\n are workers in child labor.")
+
+    def onSelected(self, selected):
+        # When an item in the dropdown menu is selected
+        if selected == "Severity Level":
+            self.reset()
+        else:
+            self.treeview.delete(*self.treeview.get_children())
+            for item in self.dataTuple:
+                if item[2] == selected:
+                    self.treeview.insert("", 0, values=(item[0], item[1]), tags=item[2])
+
+    def reset(self):
+        # Resets the the selected items to normal
+        self.treeview.delete(*self.treeview.get_children())
+        for item in self.dataTuple:
+            self.treeview.insert("", 0, values=(item[0], item[1]), tags=item[2])
+
     def mainApp(self):
         self.root.destroy()
         window = Tk()
@@ -81,14 +74,27 @@ class app:
         if system() == 'darwin':
             window.iconphoto(True, "cl.gif")
             window.iconbitmap("cl.icns")
+        # Dropdown Menu
+        top = Canvas(window, height = 25, width = 370, bg= 'white')
+        top.pack()
+        self.selected = StringVar(window)
+        self.allsev.insert(0, "Severity Level")
+        caller = self.onSelected
+        select = OptionMenu(top, self.selected, *self.allsev, command = self.onSelected)
+        self.selected.set(self.allsev[0])
+        select.grid(sticky = 'w')
+        # Treeview /data container
         treeFrame = Frame(window)
         self.treeview=ttk.Treeview(treeFrame, columns=("country", "percentageChildren"), show='headings')
         self.treeview.heading("country", text="Country")
+        self.treeview.column("country", minwidth=0, width=300)
         self.treeview.heading("percentageChildren", text="Percent(%)")
+        self.treeview.column("percentageChildren", minwidth = 0, width = 70)
         treeFrame.pack()
         self.treeview.pack(padx=20,pady=10)
-        treeScroll = ttk.Scrollbar(treeFrame, orient="vertical", command=self.treeview.yview)
-        treeScroll.place(x=430, height=220)
+        #ScrollBar
+        treeScroll = ttk.Scrollbar(window, orient="vertical", command=self.treeview.yview)
+        treeScroll.place(x=400, height=245)
         self.treeview.configure(yscrollcommand=treeScroll.set)
         for item in self.dataTuple:
             self.treeview.insert("", 0, values=(item[0], item[1]), tags=item[2])
@@ -109,7 +115,7 @@ class app:
         welcomeLabel.grid()
         welcomeButton = Button(welcomeFrame, text="Start", command=self.mainApp)
         welcomeButton.grid(row=2, column=1)
-        welcomeImg = PhotoImage( file= ( "welcomeImage.gif"))
+        welcomeImg = PhotoImage( file= ("welcomeImage.gif"))
         imgLabel = Label(welcomeFrame, image= welcomeImg)
         imgLabel.grid(row=1)
         self.root.mainloop()
